@@ -1,0 +1,3 @@
+/home/frederik/Documents/RoVi/Vision/DisplayImage/build/CMakeFiles/edit_cache.dir
+/home/frederik/Documents/RoVi/Vision/DisplayImage/build/CMakeFiles/rebuild_cache.dir
+/home/frederik/Documents/RoVi/Vision/DisplayImage/build/CMakeFiles/DisplayImage.dir

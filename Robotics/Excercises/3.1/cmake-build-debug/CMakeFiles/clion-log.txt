@@ -1,0 +1,6 @@
+/home/frederik/clion-2017.2.2/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/frederik/Documents/RoVi/Robotics/Excercises/3.1
+-- Build type: Release
+3_1 done!
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/frederik/Documents/RoVi/Robotics/Excercises/3.1/cmake-build-debug

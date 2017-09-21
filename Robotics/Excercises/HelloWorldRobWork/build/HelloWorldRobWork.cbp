@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="HelloWorldRobWork" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\RobWork\;CMake Files\..\..\..\..\RobWork\RobWork\;CMake Files\..\..\..\..\RobWork\RobWork\cmake\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="edit_cache">
+         <Option working_dir="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 edit_cache" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="rebuild_cache">
+         <Option working_dir="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 rebuild_cache" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="HelloWorldRobWork">
+         <Option output="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/HelloWorldRobWork" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DBOOST_DISABLE_ASSERTS" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/assimp/include" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/boostbindings" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/csgjs/src" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/eigen3" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/lua/src" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/qhull/src" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/rwpqp" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/rwyaobi" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/unzip" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../src" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 HelloWorldRobWork" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="HelloWorldRobWork/fast">
+         <Option output="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/HelloWorldRobWork" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DBOOST_DISABLE_ASSERTS" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/assimp/include" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/boostbindings" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/csgjs/src" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/eigen3" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/lua/src" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/qhull/src" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/rwpqp" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/rwyaobi" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../ext/unzip" />
+            <Add directory="/home/frederik/RobWork/RobWork/cmake/../src" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 HelloWorldRobWork/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/src/HelloWorldRobWork.cpp">
+         <Option target="HelloWorldRobWork"/>
+      </Unit>
+      <Unit filename="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+      <Unit filename="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/../../../../RobWork/RobWork/cmake/RobWorkConfigVersion.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\RobWork\RobWork\cmake\" />
+      </Unit>
+      <Unit filename="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/../../../../RobWork/RobWork/cmake/RobWorkConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\RobWork\RobWork\cmake\" />
+      </Unit>
+      <Unit filename="/home/frederik/Documents/RoVi/Robotics/HelloWorldRobWork/../../../../RobWork/RobWork/cmake/RobWorkBuildConfig_release.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\RobWork\RobWork\cmake\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>
