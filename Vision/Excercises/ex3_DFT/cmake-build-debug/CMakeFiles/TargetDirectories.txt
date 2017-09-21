@@ -1,3 +1,0 @@
-/home/frederik/Documents/RoVi/Vision/Excercises/ex3_DFT/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/frederik/Documents/RoVi/Vision/Excercises/ex3_DFT/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/frederik/Documents/RoVi/Vision/Excercises/ex3_DFT/cmake-build-debug/CMakeFiles/ex3_DFT.dir
