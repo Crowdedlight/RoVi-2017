@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <rw/math.hpp> // Pi, Deg2Rad
 #include <rw/math/Q.hpp>
 #include <rw/math/Transform3D.hpp>
@@ -12,6 +13,7 @@ using namespace rw::math;
 Rotation3D<> matrixRotate(char axis, float angle);
 Rotation3D<> matrixRotate(float rotationX, float rotationY, float rotationZ);
 RPY<> RotToRPY(Rotation3D<> &matrix);
+Transform3D<> computeTransforms(Q state, vector<Transform3D<>> transformations, int index);
 
 int main() {
 
@@ -24,7 +26,73 @@ int main() {
     RPY<> matrixRPY = RotToRPY(matrix2);
     cout << matrixRPY << endl << endl;
 
+    //Make transformation vectors from workcell. From base and up
+    vector<Transform3D<>> transformations;
+
+    //joint0
+    Vector3D<> jt(0,0,0);
+    Rotation3D<double> jr = RPY<double>(0, 0, 0).toRotation3D();
+    transformations.push_back(Transform3D<double>(jt, jr));
+
+    //joint1
+    jt = Vector3D<>(0,0,0.892);
+    jr = RPY<double>(90,0,90).toRotation3D();
+    transformations.push_back(Transform3D<double>(jt, jr));
+
+    //joint2
+    jt = Vector3D<>(0,0.425,0);
+    jr = RPY<double>(270,0,0).toRotation3D();
+    transformations.push_back(Transform3D<double>(jt, jr));
+
+    //joint3
+    jt = Vector3D<>(-0.39243,0,-0.01468);
+    jr = RPY<double>(0,0,0).toRotation3D();
+    transformations.push_back(Transform3D<double>(jt, jr));
+
+    //joint4
+    jt = Vector3D<>(0,0,0.109);
+    jr = RPY<double>(90,180,270).toRotation3D();
+    transformations.push_back(Transform3D<double>(jt, jr));
+
+    //joint5
+    jt = Vector3D<>(0,0,0.093);
+    jr = RPY<double>(0,0,0).toRotation3D();
+    transformations.push_back(Transform3D<double>(jt, jr));
+
+
+    //joint6
+    jt = Vector3D<>(0,0.082,0);
+    jr = RPY<double>(0,270,270).toRotation3D();
+    transformations.push_back(Transform3D<double>(jt, jr));
+
+    Q state(6,0.00);
+
+    Transform3D<> result = computeTransforms(state, transformations, 3);
+    cout << result << endl << endl;
+
     return 0;
+}
+
+// Ti_base = T1_base * T2_1 * ... * Ti_i-1
+// Ti_i-1 = Trefi_i-1 * T_z(q_i)      ==> T_z is always rotation matrix around z. qi is the state vector component from joint i
+
+Transform3D<> computeTransforms(Q state, vector<Transform3D<double>> transformations, int index)
+{
+    Transform3D<> currentTransform;
+    for (int i = 0; i <= index; i++)
+    {
+        //calculate Ti_i-1
+        Transform3D<> Tref = transformations[i];
+        //rot matrix around z with Q(i)
+        Rotation3D<> rotz = matrixRotate('z', state[i]);
+
+        Transform3D<> Ti;
+        Tref.multiply(Tref, Transform3D<double>(rotz), Ti);
+
+        currentTransform.multiply(currentTransform, Ti, currentTransform);
+    }
+
+    return currentTransform;
 }
 
 RPY<> RotToRPY(Rotation3D<> &matrix)
