@@ -7,8 +7,15 @@
 using namespace cv;
 using namespace std;
 
+void showImage(string name, Mat img)
+{
+    namedWindow(name, WINDOW_NORMAL);
+    imshow(name, img);
+    imwrite("../../outimg/image3/" + name + ".png", img);
+}
+
 void dftshift(cv::Mat& mag);
-Mat bhpf(float d0, int n, Size size); //from Kims solution to assignment 4.
+Mat butterworth(float d0, int n, Size size, bool highpass);
 cv::Mat histogram_image(const cv::Mat& hist); //from Kims solution to assignment 2
 
 int main() {
@@ -16,7 +23,7 @@ int main() {
     //region Image3
 
     // Load image3 as grayscale
-    string filename = "../imgs/Image3.png";
+    string filename = "../../imgs/Image3.png";
     Mat img = cv::imread(filename, cv::IMREAD_GRAYSCALE);
 
     if (img.empty()) {
@@ -39,9 +46,9 @@ int main() {
 
     // Expand the image to an optimal size.
     cv::Mat padded;
-    int opt_rows = cv::getOptimalDFTSize(cropped.rows);
-    int opt_cols = cv::getOptimalDFTSize(cropped.cols);
-    cv::copyMakeBorder(cropped, padded, 1, opt_rows - cropped.rows, 1, opt_cols - cropped.cols, BORDER_CONSTANT, Scalar::all(0));
+    int opt_rows = cv::getOptimalDFTSize(img.rows);
+    int opt_cols = cv::getOptimalDFTSize(img.cols);
+    cv::copyMakeBorder(img, padded, 1, opt_rows - img.rows, 1, opt_cols - img.cols, BORDER_CONSTANT, Scalar::all(0));
 
     // Make place for both the real and complex values by merging planes into a
     // cv::Mat with 2 channels.
@@ -52,10 +59,12 @@ int main() {
     // Compute DFT
     dft(complex, complex);
 
+    //split
     split(complex, planes);
 
-    cv::Mat mag, phase;
-    cartToPolar(planes[0], planes[1], mag, phase);
+    //get magnitude and phase
+    cv::Mat mag;
+    magnitude(planes[0], planes[1], mag);
 
     //shift dft
     dftshift(mag);
@@ -67,18 +76,30 @@ int main() {
     cv::normalize(mag, mag, 0, 1, NORM_MINMAX);
 
     //Visualize input, cropped, histogram and spectrum
-    //imshow("Input image", img);
-    imshow("Cropped image", cropped);
-    imshow("Historigram cropped", histogram_image(hist));
-    imshow("Magnitude cropped", mag);
+    showImage("Input_image", img);
+    showImage("Cropped_image", cropped);
+    showImage("Historigram_cropped", histogram_image(hist));
+    showImage("Magnitude_cropped", mag);
 
-    //looks like uniform noise that isn't completely ideal. From magnitude it looks like we could enhance image
-    //with
+    //looks like some random noise. So like gaussian noise. Using bilateralFilter
+    Mat filtered;
+    bilateralFilter(img, filtered, 9, 40,40);
 
+    //new histogram to see filter effect
+    Mat cropped2 (filtered, Rect(Point(830,1460), Point(1468, 1747)));
+    Mat filteredHist;
+    calcHist(std::vector<cv::Mat>{cropped2},
+             {0}, // channels
+             noArray(), // mask
+             filteredHist, // output histogram
+             {256}, // sizes (number of bins)
+             {0, 256} // ranges (bin lower/upper boundaries)
+    );
+    showImage("Filtered histogram", histogram_image(filteredHist));
 
-    //endregion
-
-    //region Image4_1
+    //show filtered image
+    //normalize(filtered, filtered, 0, 1, NORM_MINMAX);
+    showImage("Filtered image", filtered);
 
     //endregion
 
@@ -86,10 +107,35 @@ int main() {
     return 0;
 }
 
-//Kims implementation of butterworth highpass filter.
-Mat bhpf(float d0, int n, Size size)
+//Kims implementation of butterworth highpass filter, modified.
+Mat butterworth(float d0, int n, Size size, bool highpass)
 {
+    cv::Mat_<cv::Vec2f> bwf(size);
+    cv::Point2f c = cv::Point2f(size) / 2;
 
+    for (int i = 0; i < size.height; ++i) {
+        for (int j = 0; j < size.width; ++j) {
+            // Distance from point (i,j) to the origin of the Fourier transform
+            float d = std::sqrt((i - c.y) * (i - c.y) + (j - c.x) * (j - c.x));
+
+            if(highpass)
+            { //HIGHPASS
+                // Real part
+                if (std::abs(d) < 1.e-9f) // Avoid division by zero
+                    bwf(i, j)[0] = 0;
+                else {
+                    bwf(i, j)[0] = 1 / (1 + std::pow(d0 / d, 2 * n));
+                }
+            } else //LOWPASS
+            {
+                bwf(i,j)[0] = 1 / (1 + std::pow(d / d0, 2 * n));
+            }
+
+            // Imaginary part
+            bwf(i, j)[1] = 0;
+        }
+    }
+    return bwf;
 }
 
 // Draws the 1D histogram 'hist' and returns the image. From Kims solution

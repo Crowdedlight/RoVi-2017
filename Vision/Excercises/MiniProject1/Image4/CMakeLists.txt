@@ -3,7 +3,7 @@ project(MiniProject1)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES image4.cpp)
 add_executable(MiniProject1 ${SOURCE_FILES})
 
 find_package(OpenCV 3 REQUIRED)
