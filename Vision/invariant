@@ -1,0 +1,24 @@
+Area:
+	- scaling
+	+ translation
+	+ rotation
+Perimeter:
+	- scaling
+	+ translation
+	+ rotation	
+Bounding Box:
+	- scaling
+	+ translation
+	- rotation
+Diameter:
+	- scaling
+	+ translation
+	+ rotation
+Equaivalent diameter:
+	- scaling
+	+ translation
+	+ rotation
+Compactness:
+	+ scaling
+	+ translation
+	+ rotation

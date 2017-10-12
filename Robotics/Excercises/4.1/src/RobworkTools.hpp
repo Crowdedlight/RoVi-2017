@@ -69,18 +69,18 @@ class RobworkTools {
     };
 
     //compute jacobien
-    static rw::math::Jacobian getJacobian(const std::vector<rw::math::Transform3D<>> &trefs, const rw::math::Q &q) {
+    static rw::math::Jacobian getJacobian(const std::vector<rw::math::Transform3D<>> &trefs, const rw::math::Q &q, const rw::math::Transform3D<> &tcpFrame) {
         //trefs include the lastjoint to tcp frame, hence need to do -1
-        rw::math::Jacobian jacobian(trefs.size()-1);
+        rw::math::Jacobian jacobian = rw::math::Jacobian::zero(6, trefs.size());
 
         //calculate pbasetcp
-        rw::math::Transform3D<> t_toolbase = forwardKinematics(trefs, trefs.size()-1, q)*trefs[trefs.size()];
+        rw::math::Transform3D<> t_toolbase = forwardKinematics(trefs, trefs.size(), q)*tcpFrame;
         rw::math::Vector3D<> p_toolbase = t_toolbase.P();
 
-        for (int i = 1; i <= trefs.size()-1; i++) {
+        for (int i = 0; i < trefs.size(); i++) {
 
             //calculate first equation
-            rw::math::Transform3D<> tibase = forwardKinematics(trefs, i, q);
+            rw::math::Transform3D<> tibase = forwardKinematics(trefs, i+1, q);
             rw::math::Vector3D<> zibase = tibase.R().getCol(2);
 
             //calculate pbasei
@@ -90,7 +90,7 @@ class RobworkTools {
             rw::math::Vector3D<> psum = p_toolbase - pibase;
 
             //calculate cross product zibase X psum
-            rw::math::Vector3D<> coli_pos = rw::math::cross(zibase, psum); //FIRST THREE VALUES IN JACOBIAN COLUM 1
+            rw::math::Vector3D<> coli_pos = rw::math::cross(zibase, psum);
 
             //Rotation Jacobian
             rw::math::Vector3D<> coli_rot = zibase;
@@ -99,6 +99,8 @@ class RobworkTools {
             jacobian.addPosition(coli_pos, 0, i);
             jacobian.addRotation(coli_rot, 0, i);
         }
+
+        return jacobian;
     }
 
 };

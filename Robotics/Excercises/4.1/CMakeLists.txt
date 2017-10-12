@@ -19,7 +19,7 @@ SET(RW_ROOT $ENV{RW_ROOT})
 set(CMAKE_VERBOSE_MAKEFILE false)
 
 # Set build type to release
-SET(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_BUILD_TYPE debug)
 MESSAGE("-- Build type: " ${CMAKE_BUILD_TYPE})
 
 # Use RobWork
