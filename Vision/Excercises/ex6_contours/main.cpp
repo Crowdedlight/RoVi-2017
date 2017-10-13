@@ -16,7 +16,7 @@ using namespace cv;
 using namespace std;
 
 //settings for trackbar
-int threshold_value = 99;
+int threshold_value = 97;
 int threshold_type = 1;
 int const max_value = 255;
 int const max_type = 4;
@@ -31,16 +31,22 @@ string trackbar_value = "Value";
 //contours found
 vector<vector<Point> > contours;
 
+//Coins sum
+int countSum = 0;
+
 void showContours ()
 {
     vector<Vec4i> hierarchy;
     /// Find contours
-    findContours(thresImg, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+    findContours(thresImg, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
     /// Draw contours
     Mat drawing = Mat::zeros( thresImg.size(), CV_8UC3 );
     for( int i = 0; i< contours.size(); i++ )
     {
+        if (hierarchy[i][3] != -1)
+            continue;
+
         Scalar color = Scalar( 255,0,0 );
         drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
 
@@ -62,16 +68,26 @@ void showContours ()
 
         //change value based on size. Issue with two 10's that is marked as 15, as their radius is 93 & 96
         string coinText = "";
-        if (tempRadius >= 129)
+        if (tempRadius >= 124.6) {
             coinText = "50";
-        else if (tempRadius>=122.5)
+            countSum += 50;
+        }
+        else if (tempRadius>=121) {
             coinText = "5";
-        else if (tempRadius>=97.7)
+            countSum += 5;
+        }
+        else if (tempRadius>=107) {
             coinText = "20";
-        else if (tempRadius>=77.8)
+            countSum += 20;
+        }
+        else if (tempRadius>=91) {
             coinText = "15";
-        else if (tempRadius>=70)
+            countSum += 15;
+        }
+        else if (tempRadius>=80) {
             coinText = "10";
+            countSum += 10;
+        }
         else
             coinText = "??";
 
@@ -118,7 +134,10 @@ int main(int argc, char* argv[])
     }
 
     //blur it
-    blur(img, blurred, Size(60,60));
+    Mat filter;
+    blur(img, filter, Size(20,20));
+    bilateralFilter(filter, blurred, 5, 60,60);
+
 
     // Create Trackbar to choose type and parameter of Threshold
     namedWindow(window_name_threshold, WINDOW_NORMAL);
@@ -135,6 +154,7 @@ int main(int argc, char* argv[])
 
     //count the coins
     cout << "Number of contours: " << contours.size() << endl;
+    cout << "Sum of Coins: " << countSum << endl;
 
     cv::waitKey();
     return 0;
