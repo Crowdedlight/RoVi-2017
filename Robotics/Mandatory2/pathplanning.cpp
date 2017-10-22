@@ -72,15 +72,13 @@ int main(int argc, char** argv) {
 	/** More complex way: allows more detailed definition of parameters and methods */
 	QSampler::Ptr sampler = QSampler::makeConstrained(QSampler::makeUniform(device),constraint.getQConstraintPtr());
 	QMetric::Ptr metric = MetricFactory::makeEuclidean<Q>();
-	double extend = 1.5;
+	double extend = 1.3;
 
 	if (!checkCollisions(device, state, detector, from))
 		return 0;
 	if (!checkCollisions(device, state, detector, to))
 		return 0;
 
-    double time = 0;
-    double steps = 0;
     cout << "Planning from " << from << " to " << to << endl;
     ofstream timeout;
     ofstream stepout;
@@ -98,15 +96,12 @@ int main(int argc, char** argv) {
             //redo seed time of day
             Math::seed();
 
-
             QPath path;
             Timer t;
             t.resetAndResume();
             planner->query(from,to,path,MAXTIME);
             t.pause();
             //cout << "Path of length " << path.size() << " found in " << t.getTime() << " seconds." << endl;
-//            steps += path.size();
-//            time += t.getTime();
 
             timeout << t.getTime() << ",";
             stepout << path.size() << ",";
@@ -117,12 +112,11 @@ int main(int argc, char** argv) {
         }
         timeout << endl;
         stepout << endl;
-//        cout << "Mean Time = " << time/100 << " seconds" << endl;
-//        cout << "Mean Steps = " << steps/100 << endl;
     }
     timeout.close();
     stepout.close();
 	cout << "Program done." << endl;
+    //save path as lua path
     //PathToLua(path, "luaout");
 	return 0;
 }
@@ -176,10 +170,6 @@ void PathToLua(QPath& path, string filename)
             luaout << "attach(bottle,table)" << "\n";
         }
     }
-
-    //code for pick and place. Need to know when to do that
-    //attach(bottle,gripper)
-    //attach(bottle,table)
 
     //file finished, close stream
     luaout.close();
