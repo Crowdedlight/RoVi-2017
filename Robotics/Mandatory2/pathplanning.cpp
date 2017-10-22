@@ -96,6 +96,7 @@ int main(int argc, char** argv) {
             //redo seed time of day
             Math::seed();
 
+
             QPath path;
             Timer t;
             t.resetAndResume();
@@ -116,7 +117,6 @@ int main(int argc, char** argv) {
     timeout.close();
     stepout.close();
 	cout << "Program done." << endl;
-    //save path as lua path
     //PathToLua(path, "luaout");
 	return 0;
 }
