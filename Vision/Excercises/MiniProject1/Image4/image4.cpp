@@ -16,6 +16,10 @@ void showImage(string name, Mat img)
 
 void dftshift(cv::Mat& mag);
 Mat butterworth(float d0, int n, Size size, bool highpass);
+Mat getMagnitudeSpectrum(Mat& img);
+Mat applyDft(Mat img);
+void butterworthFrequencyFilter(Mat &filter, int D, int n, bool highpass, bool band, int from, int to);
+Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to)
 cv::Mat histogram_image(const cv::Mat& hist); //from Kims solution to assignment 2
 
 int main() {
@@ -79,7 +83,7 @@ int main() {
     showImage("Historigram_cropped", histogram_image(hist));
     showImage("Magnitude_cropped", mag);
 
-    //looks like some random noise. So like gaussian noise. Using bilateralFilter
+    //looks like... TODO
     Mat filter = butterworth(50, 2, complex.size(), false);
 
     //show filter
@@ -143,7 +147,7 @@ int main() {
 Mat butterworth(float d0, int n, Size size, bool highpass)
 {
     cv::Mat_<cv::Vec2f> bwf(size);
-    cv::Point2f c = cv::Point2f(size) / 2 + ();
+    cv::Point2f c = cv::Point2f(size) / 2;
 
     for (int i = 0; i < size.height; ++i) {
         for (int j = 0; j < size.width; ++j) {
@@ -209,4 +213,91 @@ void dftshift(cv::Mat& mag)
     q1.copyTo(tmp);
     q2.copyTo(q1);
     tmp.copyTo(q2);
+}
+
+///Splits complex image and returns magnitude spectrum
+Mat getMagnitudeSpectrum(Mat& img)
+{
+    Mat planes[2];
+
+    //split
+    split(img, planes);
+    magnitude(planes[0], planes[1], planes[0]);
+
+    //get magnitude
+    Mat mag = (planes[0]).clone();
+    mag += Scalar::all(1);
+    log(mag, mag);
+
+    //shift so low-frequency is in middle
+    dftshift(mag);
+
+    //normalize
+    normalize(mag, mag, 0, 1, CV_MINMAX);
+
+    return mag;
+}
+
+Mat applyDft(Mat img)
+{
+    Mat padded;                            //expand input image to optimal size
+    int m = getOptimalDFTSize( img.rows );
+    int n = getOptimalDFTSize( img.cols ); // on the border add zero values
+    copyMakeBorder(img, padded, 0, m - img.rows, 0, n - img.cols, BORDER_CONSTANT, Scalar::all(0));
+
+    //create 2-channel planes to store dtf
+    Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
+    Mat complex;
+
+    //merge into planes
+    merge(planes, 2, complex);
+
+    //do dft
+    dft(complex, complex);
+
+    return complex;
+}
+
+void butterworthFrequencyFilter(Mat &filter, int D, int n, bool highpass, bool band, int from, int to)
+{
+    int d = D;
+    if(band)
+        d = to;
+    Mat tmp = butterworth(d,n,filter.size(),highpass);
+    if(band)
+    {
+        Mat reject = butterworth(from,n,filter.size(),highpass);
+        tmp = tmp-reject;
+    }
+
+    normalize(tmp,tmp,0,1,CV_MINMAX);
+
+    Mat toMerge[] = {tmp, tmp};
+    merge(toMerge, 2, filter);
+}
+
+Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to)
+{
+    //vars
+    Mat imgOut;
+    Mat planes[2];
+    Mat filter;
+
+    //clone img
+    filter = img.clone();
+    //make filter
+    butterworthFrequencyFilter(filter, radius, order,1,1,from,to);
+    //shift and mul spectrums
+    dftshift(img);
+    mulSpectrums(img, filter, img, 0);
+    //shift back
+    dftshift(img);
+    //inverse dft
+    idft(img, img);
+    //split and normalize image
+    split(img, planes);
+    normalize(planes[0], imgOut, 0, 1, CV_MINMAX);
+    split(filter, planes);
+
+    return imgOut;
 }
