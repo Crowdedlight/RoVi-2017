@@ -16,11 +16,11 @@ void showImage(string name, Mat img)
 
 void dftshift(cv::Mat& mag);
 Mat butterworth(float d0, int n, Size size, bool highpass);
-Mat getMagnitudeSpectrum(Mat& img);
+Mat getMagnitudeSpectrum(Mat& img, bool shift = true);
 Mat applyDft(Mat img);
-void butterworthFrequencyFilter(Mat &filter, int D, int n, bool highpass, bool band, int from, int to);
-Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to)
-cv::Mat histogram_image(const cv::Mat& hist); //from Kims solution to assignment 2
+void butterworthFrequencyFilter(Mat &filter, int D, int n, bool highpass, bool band, int from = 0, int to = 0);
+Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to, Mat &filterOut);
+Mat getHistogram(Mat &img);
 
 int main() {
 
@@ -33,109 +33,55 @@ int main() {
         return 1;
     }
 
+    //show input
+    showImage("input", img);
+
     //crop image to largest uniform surface
     Mat cropped (img, Rect(Point(830,1460), Point(1468, 1747)));
 
     //histogram of cropped
     Mat hist;
-    calcHist(std::vector<cv::Mat>{cropped},
-                 {0}, // channels
-                 noArray(), // mask
-                 hist, // output histogram
-                 {256}, // sizes (number of bins)
-                 {0, 256} // ranges (bin lower/upper boundaries)
-    );
 
-    // Expand the image to an optimal size.
-    cv::Mat padded;
-    int opt_rows = cv::getOptimalDFTSize(img.rows);
-    int opt_cols = cv::getOptimalDFTSize(img.cols);
-    cv::copyMakeBorder(img, padded, 1, opt_rows - img.rows, 1, opt_cols - img.cols, BORDER_CONSTANT, Scalar::all(0));
+    //get histogram
+    hist = getHistogram(cropped);
+    showImage("Histogram", hist);
 
-    // Make place for both the real and complex values by merging planes into a
-    // cv::Mat with 2 channels.
-    cv::Mat planes[] = {cv::Mat_<float>(padded), cv::Mat_<float>::zeros(padded.size())};
-    cv::Mat complex;
-    merge(planes, 2, complex);
+    //Frequency analyse
+    Mat complex = applyDft(img);
 
-    // Compute DFT
-    dft(complex, complex);
-
-    //split
-    split(complex, planes);
-
-    //get magnitude and phase
-    cv::Mat mag;
-    magnitude(planes[0], planes[1], mag);
-
-    //shift dft
-    dftshift(mag);
-    // Switch to logarithmic scale to be able to display on screen
-    mag += cv::Scalar::all(1);
-    cv::log(mag, mag);
-
-    //normalize images
-    cv::normalize(mag, mag, 0, 1, NORM_MINMAX);
-
-    //Visualize input, cropped, histogram and spectrum
-    showImage("Input_image", img);
-    showImage("Cropped_image", cropped);
-    showImage("Historigram_cropped", histogram_image(hist));
-    showImage("Magnitude_cropped", mag);
+    //Get magnitude to detect fails
+    Mat mag = getMagnitudeSpectrum(complex);
+    showImage("mag", mag);
 
     //looks like... TODO
-    Mat filter = butterworth(50, 2, complex.size(), false);
 
-    //show filter
-    cv::Mat Filter_planes[2];
-    cv::split(filter, Filter_planes); // We can only display the real part
-    cv::normalize(Filter_planes[0], Filter_planes[0], 0, 1, cv::NORM_MINMAX);
-    showImage("lowpass filter", Filter_planes[0]);
+    //Apply filter in frequency domain
+    int radius = 200;
+    int order = 6;
+    Mat filterOut;
+    Mat imgOut = applyFilterComplexImage(complex, radius, order, 130, 160, filterOut);
 
-    //multiply spectrums
-    mulSpectrums(complex, filter, complex, 0);
+    Mat filterMag = getMagnitudeSpectrum(filterOut, false);
+    showImage("FilterOut", filterMag);
 
-    //dftshift
-    dftshift(complex);
+    //do dft on image with filter and show new mag
+    Mat filteredComplex = applyDft(imgOut);
+    Mat filteredMag = getMagnitudeSpectrum(filteredComplex);
+    showImage("filteredImg", imgOut);
+    showImage("filteredMag", filteredMag);
 
-    //show new magnitude
-    Mat filteredMag;
-    Mat filtered_planes[2];
-    split(complex, filtered_planes);
-    magnitude(filtered_planes[0], filtered_planes[1], filteredMag);
-    //shift dft
-    dftshift(filteredMag);
-    // Switch to logarithmic scale to be able to display on screen
-    filteredMag += cv::Scalar::all(1);
-    cv::log(filteredMag, filteredMag);
-    showImage("filtered magnitude", filteredMag);
+    //Make another notch filter
+    Mat filterOut2;
+    Mat imgOut2 = applyFilterComplexImage(filteredComplex, radius, order, 432, 451, filterOut2);
 
-    //shift back
-    dftshift(complex);
+    Mat filterMag2 = getMagnitudeSpectrum(filterOut2, false);
+    showImage("FilterOut2", filterMag2);
 
-    //inverse dft
-    Mat filtered;
-    idft(complex, filtered, (DFT_SCALE | DFT_REAL_OUTPUT));
-
-
-    //crop padded regions
-    filtered = Mat(filtered, Rect(Point(0,0), padded.size()));
-
-    //new histogram to see filter effect
-    Mat cropped2 (filtered, Rect(Point(830,1460), Point(1468, 1747)));
-    Mat filteredHist;
-    calcHist(std::vector<cv::Mat>{cropped2},
-             {0}, // channels
-             noArray(), // mask
-             filteredHist, // output histogram
-             {256}, // sizes (number of bins)
-             {0, 256} // ranges (bin lower/upper boundaries)
-    );
-    showImage("Filtered histogram", histogram_image(filteredHist));
-
-    //show filtered image
-    normalize(filtered, filtered, 0, 1, NORM_MINMAX);
-    showImage("Filtered image", filtered);
+    //do dft on image with filter and show new mag
+    Mat filteredComplex2 = applyDft(imgOut2);
+    Mat filteredMag2 = getMagnitudeSpectrum(filteredComplex2);
+    showImage("filteredImg2", imgOut2);
+    showImage("filteredMag2", filteredMag2);
 
     //endregion
 
@@ -143,10 +89,9 @@ int main() {
     return 0;
 }
 
-//Kims implementation of butterworth highpass filter, modified.
 Mat butterworth(float d0, int n, Size size, bool highpass)
 {
-    cv::Mat_<cv::Vec2f> bwf(size);
+    cv::Mat_<cv::Vec2f> bwf(size.height, size.width, CV_32F);
     cv::Point2f c = cv::Point2f(size) / 2;
 
     for (int i = 0; i < size.height; ++i) {
@@ -174,25 +119,6 @@ Mat butterworth(float d0, int n, Size size, bool highpass)
     return bwf;
 }
 
-// Draws the 1D histogram 'hist' and returns the image. From Kims solution
-cv::Mat histogram_image(const cv::Mat& hist)
-{
-    int nbins = hist.rows;
-
-    double max = 0;
-    double min = 0;
-    cv::minMaxLoc(hist, &min, &max);
-
-    cv::Mat img = cv::Mat::zeros(nbins, nbins, CV_8U);
-
-    for (int i = 0; i < nbins; i++) {
-        double h = nbins * (hist.at<float>(i) / max); // Normalize
-        cv::line(img, cv::Point(i, nbins), cv::Point(i, nbins - h), cv::Scalar::all(255));
-    }
-
-    return img;
-}
-
 // Rearranges the quadrants of a Fourier image so that the origin is at the
 // center of the image.
 void dftshift(cv::Mat& mag)
@@ -216,7 +142,7 @@ void dftshift(cv::Mat& mag)
 }
 
 ///Splits complex image and returns magnitude spectrum
-Mat getMagnitudeSpectrum(Mat& img)
+Mat getMagnitudeSpectrum(Mat& img, bool shift)
 {
     Mat planes[2];
 
@@ -230,7 +156,8 @@ Mat getMagnitudeSpectrum(Mat& img)
     log(mag, mag);
 
     //shift so low-frequency is in middle
-    dftshift(mag);
+    if (shift)
+        dftshift(mag);
 
     //normalize
     normalize(mag, mag, 0, 1, CV_MINMAX);
@@ -258,25 +185,30 @@ Mat applyDft(Mat img)
     return complex;
 }
 
-void butterworthFrequencyFilter(Mat &filter, int D, int n, bool highpass, bool band, int from, int to)
+void butterworthFrequencyFilter(Mat &filter, int d, int n, bool highpass, bool band, int from, int to)
 {
-    int d = D;
-    if(band)
-        d = to;
-    Mat tmp = butterworth(d,n,filter.size(),highpass);
-    if(band)
+    Mat tmp;
+    if(band && highpass)
     {
-        Mat reject = butterworth(from,n,filter.size(),highpass);
+        tmp = butterworth(to,n,filter.size(),true);
+        Mat reject = butterworth(from,n,filter.size(),false);
+        tmp = tmp+reject;
+    }
+    else if (band && !highpass)
+    {
+        tmp = butterworth(to,n,filter.size(),false);
+        Mat reject = butterworth(from,n,filter.size(),false);
         tmp = tmp-reject;
     }
-
-    normalize(tmp,tmp,0,1,CV_MINMAX);
-
-    Mat toMerge[] = {tmp, tmp};
-    merge(toMerge, 2, filter);
+    else
+    {
+        tmp = butterworth(d,n,filter.size(),highpass);
+    }
+    //give out filter
+    filter = tmp;
 }
 
-Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to)
+Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to, Mat &filterOut)
 {
     //vars
     Mat imgOut;
@@ -286,7 +218,11 @@ Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to
     //clone img
     filter = img.clone();
     //make filter
-    butterworthFrequencyFilter(filter, radius, order,1,1,from,to);
+    butterworthFrequencyFilter(filter, radius, order,true,true,from,to);
+
+    //set filterout - So filter can be shown
+    filterOut = filter;
+
     //shift and mul spectrums
     dftshift(img);
     mulSpectrums(img, filter, img, 0);
@@ -297,7 +233,34 @@ Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to
     //split and normalize image
     split(img, planes);
     normalize(planes[0], imgOut, 0, 1, CV_MINMAX);
-    split(filter, planes);
 
     return imgOut;
 }
+
+Mat getHistogram(Mat &img)
+{
+    int histSize = 256;
+    float range[] = {0,256};
+    const float* histRange= {range};
+    bool uniform = true;
+    bool accumulate = false;
+    Mat hist;
+
+    calcHist( &img, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate );
+
+    // Draw the histograms
+    int nbins = hist.rows;
+
+    double max = 0;
+    double min = 0;
+    cv::minMaxLoc(hist, &min, &max);
+
+    cv::Mat imgOut = cv::Mat::zeros(nbins, nbins, CV_8U);
+
+    for (int i = 0; i < nbins; i++) {
+        double h = nbins * (hist.at<float>(i) / max); // Normalize
+        cv::line(imgOut, cv::Point(i, nbins), cv::Point(i, nbins - h), cv::Scalar::all(255));
+    }
+    return imgOut;
+}
+
