@@ -26,9 +26,9 @@
         <entry file="file://$PROJECT_DIR$/image4.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="144">
-              <caret line="45" column="28" lean-forward="true" selection-start-line="45" selection-start-column="28" selection-end-line="45" selection-end-column="28" />
+              <caret line="47" column="31" lean-forward="true" selection-start-line="47" selection-start-column="31" selection-end-line="47" selection-end-column="31" />
               <folding>
-                <element signature="e#3271#3778#0" expanded="false" />
+                <element signature="e#3413#3920#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -85,7 +85,7 @@
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="CPPToolchains" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Image3/CMakeLists.txt" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/CMakeLists.txt" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -129,11 +129,12 @@
       <workItem from="1508776517064" duration="3488000" />
       <workItem from="1508781842656" duration="7247000" />
       <workItem from="1508918842192" duration="8257000" />
+      <workItem from="1508956066916" duration="267000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="23419000" />
+    <option name="totallyTimeSpent" value="23686000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="27" width="1366" height="705" extended-state="6" />
@@ -176,7 +177,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#3271#3778#0" expanded="false" />
+            <element signature="e#3413#3920#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -186,7 +187,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#3271#3778#0" expanded="false" />
+            <element signature="e#3413#3920#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -196,7 +197,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#3271#3778#0" expanded="false" />
+            <element signature="e#3413#3920#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -206,7 +207,17 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#3271#3778#0" expanded="false" />
+            <element signature="e#3413#3920#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/image4.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#3413#3920#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -236,9 +247,9 @@
     <entry file="file://$PROJECT_DIR$/image4.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
-          <caret line="45" column="28" lean-forward="true" selection-start-line="45" selection-start-column="28" selection-end-line="45" selection-end-column="28" />
+          <caret line="47" column="31" lean-forward="true" selection-start-line="47" selection-start-column="31" selection-end-line="47" selection-end-column="31" />
           <folding>
-            <element signature="e#3271#3778#0" expanded="false" />
+            <element signature="e#3413#3920#0" expanded="false" />
           </folding>
         </state>
       </provider>

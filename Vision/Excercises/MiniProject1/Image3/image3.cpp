@@ -18,13 +18,15 @@ void dftshift(cv::Mat& mag);
 Mat getMagnitudeSpectrum(Mat& img, bool shift = true);
 Mat applyDft(Mat img);
 Mat getHistogram(Mat &img);
+void applyContraharmonicFilter(Mat &img, Mat &imgFiltered, int windowSize, double Q);
+Mat getWindowFiltering(Mat &img, int x_center, int y_center, int windowSize);
 
 int main() {
 
     //region Image3
 
     // Load image3 as grayscale
-    string filename = "../../imgs/Image3.png";
+    string filename = "../../imgs/Image1.png";
     Mat img = cv::imread(filename, cv::IMREAD_GRAYSCALE);
 
     if (img.empty()) {
@@ -48,9 +50,10 @@ int main() {
     showImage("Historigram_cropped", hist);
     showImage("Magnitude_cropped", mag);
 
-    //looks like some random noise. So like gaussian noise. Using bilateralFilter
-    Mat filtered;
-    bilateralFilter(img, filtered, 9, 40,40);
+    //looks like some salt noise using Contraharmonic filter to get rid of it
+    Mat filtered(img.size(), img.type());
+
+    applyContraharmonicFilter(img, filtered, 5, -3.5);
 
     //new histogram to see filter effect
     Mat cropped2 (filtered, Rect(Point(830,1460), Point(1468, 1747)));
@@ -58,7 +61,6 @@ int main() {
     showImage("Filtered histogram", filteredHist);
 
     //show filtered image
-    //normalize(filtered, filtered, 0, 1, NORM_MINMAX);
     showImage("Filtered image", filtered);
 
     //endregion
@@ -160,4 +162,59 @@ void dftshift(cv::Mat& mag)
     q1.copyTo(tmp);
     q2.copyTo(q1);
     tmp.copyTo(q2);
+}
+
+Mat getWindowFiltering(Mat &img, int x_center, int y_center, int windowSize)
+{
+    int x1 = x_center-windowSize;
+    int y1 = y_center-windowSize;
+    int x2 = x_center+windowSize;
+    int y2 = y_center+windowSize;
+
+    //check for bounds. x1,y1 can only be less than 0
+    if (x1 < 0)
+        x1 = 0;
+
+    if (y1 < 0)
+        y1 = 0;
+
+    //x2,y2 can only be more than width/height
+    if (x2 > img.size().width)
+        x2 = img.size().width;
+
+    if (y2 > img.size().height)
+        y2 = img.size().height;
+
+    //get window
+    Mat roi(img, Rect(Point(x1,y1), Point(x2,y2)));
+    return roi;
+}
+
+void applyContraharmonicFilter(Mat &img, Mat &imgFiltered, int windowSize, double Q)
+{
+    for (int x = 0; x < img.size().width; x++)
+    {
+        for (int y = 0; y < img.size().height; y++)
+        {
+            double upperSum = 0;
+            double lowerSum = 0;
+
+            //get window
+            Mat window = getWindowFiltering(img, x,y,windowSize);
+
+            //go though entire window
+            for (int s = 0; s < window.size().width; s++)
+            {
+                for (int t = 0; t < window.size().height; t++)
+                {
+                    //remember .at() is .at(rows,cols)
+                    int pvalue = window.at<uchar>(s,t);
+                    upperSum += pow(pvalue, Q+1);
+                    lowerSum += pow(pvalue,Q);
+                }
+            }
+            //apply new value to current pixel
+            imgFiltered.at<uchar>(y,x) = upperSum/lowerSum;
+        }
+    }
 }

@@ -7,10 +7,15 @@
 using namespace cv;
 using namespace std;
 
-void showImage(string name, Mat img)
+void showImage(string name, Mat img, bool convert = false)
 {
     namedWindow(name, WINDOW_NORMAL);
     imshow(name, img);
+
+    //convert so image can be saved
+    if(convert)
+        img.convertTo(img,CV_8UC3,255.0);
+
     imwrite("../../outimg/image4_2/" + name + ".png", img);
 }
 
@@ -47,7 +52,7 @@ int main() {
 
     //Get magnitude to detect fails
     Mat mag = getMagnitudeSpectrum(complex);
-    showImage("mag", mag);
+    showImage("mag", mag, true);
 
     //looks like periodic noise. Maybe sinusoidal
 
@@ -65,13 +70,13 @@ int main() {
     imgOut = Mat(imgOut, cv::Rect(cv::Point(0, 0), img.size()));
 
     Mat filterMag = getMagnitudeSpectrum(filter, false);
-    showImage("FilterOut", filterMag);
+    showImage("FilterOut", filterMag, true);
 
     //do dft on image with filter and show new mag
     Mat filteredComplex = applyDft(imgOut);
     Mat filteredMag = getMagnitudeSpectrum(filteredComplex);
-    showImage("filteredImg", imgOut);
-    showImage("filteredMag", filteredMag);
+    showImage("filteredImg", imgOut, true);
+    showImage("filteredMag", filteredMag, true);
 
     waitKey();
     return 0;
