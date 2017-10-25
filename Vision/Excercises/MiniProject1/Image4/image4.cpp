@@ -11,21 +11,20 @@ void showImage(string name, Mat img)
 {
     namedWindow(name, WINDOW_NORMAL);
     imshow(name, img);
-    imwrite("../../outimg/image4_1/" + name + ".png", img);
+    imwrite("../../outimg/image4_2/" + name + ".png", img);
 }
 
 void dftshift(cv::Mat& mag);
-Mat butterworth(float d0, int n, Size size, bool highpass);
+Mat butterworth(float d0, int n, Size size, bool highpass, bool band = false, float bandWidth = 0);
 Mat getMagnitudeSpectrum(Mat& img, bool shift = true);
 Mat applyDft(Mat img);
-void butterworthFrequencyFilter(Mat &filter, int D, int n, bool highpass, bool band, int from = 0, int to = 0);
-Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to, Mat &filterOut);
+Mat applyFilterComplexImage(Mat &img, Mat &filterOut);
 Mat getHistogram(Mat &img);
 
 int main() {
 
     // Load image4 as grayscale
-    string filename = "../../imgs/Image4_1.png";
+    string filename = "../../imgs/Image4_2.png";
     Mat img = cv::imread(filename, cv::IMREAD_GRAYSCALE);
 
     if (img.empty()) {
@@ -53,15 +52,22 @@ int main() {
     Mat mag = getMagnitudeSpectrum(complex);
     showImage("mag", mag);
 
-    //looks like... TODO
+    //looks like periodic noise. Maybe sinusoidal
 
     //Apply filter in frequency domain
-    int radius = 200;
-    int order = 6;
-    Mat filterOut;
-    Mat imgOut = applyFilterComplexImage(complex, radius, order, 130, 160, filterOut);
+    int radius = 410;
+    int order = 4;
+    int bandWidth = 35;
 
-    Mat filterMag = getMagnitudeSpectrum(filterOut, false);
+    //make bandreject filter
+    Mat filter = butterworth(radius, order, complex.size(), false, true, bandWidth);
+
+    Mat imgOut = applyFilterComplexImage(complex, filter);
+
+    // Crop image (remove padded borders)
+    imgOut = Mat(imgOut, cv::Rect(cv::Point(0, 0), img.size()));
+
+    Mat filterMag = getMagnitudeSpectrum(filter, false);
     showImage("FilterOut", filterMag);
 
     //do dft on image with filter and show new mag
@@ -70,26 +76,13 @@ int main() {
     showImage("filteredImg", imgOut);
     showImage("filteredMag", filteredMag);
 
-    //Make another notch filter
-    Mat filterOut2;
-    Mat imgOut2 = applyFilterComplexImage(filteredComplex, radius, order, 432, 451, filterOut2);
-
-    Mat filterMag2 = getMagnitudeSpectrum(filterOut2, false);
-    showImage("FilterOut2", filterMag2);
-
-    //do dft on image with filter and show new mag
-    Mat filteredComplex2 = applyDft(imgOut2);
-    Mat filteredMag2 = getMagnitudeSpectrum(filteredComplex2);
-    showImage("filteredImg2", imgOut2);
-    showImage("filteredMag2", filteredMag2);
-
     //endregion
 
     waitKey();
     return 0;
 }
 
-Mat butterworth(float d0, int n, Size size, bool highpass)
+Mat butterworth(float d0, int n, Size size, bool highpass, bool band, float bandWidth)
 {
     cv::Mat_<cv::Vec2f> bwf(size.height, size.width, CV_32F);
     cv::Point2f c = cv::Point2f(size) / 2;
@@ -99,21 +92,30 @@ Mat butterworth(float d0, int n, Size size, bool highpass)
             // Distance from point (i,j) to the origin of the Fourier transform
             float d = std::sqrt((i - c.y) * (i - c.y) + (j - c.x) * (j - c.x));
 
-            if(highpass)
-            { //HIGHPASS
+            //Bandreject
+            if (band)
+            {
                 // Real part
                 if (std::abs(d) < 1.e-9f) // Avoid division by zero
                     bwf(i, j)[0] = 0;
                 else {
-                    bwf(i, j)[0] = 1 / (1 + std::pow(d0 / d, 2 * n));
+                    bwf(i, j)[0] = 1 / (1 + pow((d0*bandWidth) / (pow(d,2)-pow(d0,2)), 2 * n));
                 }
-            } else //LOWPASS
+            }
+            else //lowpass
             {
                 bwf(i,j)[0] = 1 / (1 + std::pow(d / d0, 2 * n));
             }
 
             // Imaginary part
             bwf(i, j)[1] = 0;
+        }
+
+        //make highpass if needed
+        if (highpass)
+        {
+            Mat filterOut = Scalar::all(255) - bwf;
+            return filterOut;
         }
     }
     return bwf;
@@ -185,51 +187,21 @@ Mat applyDft(Mat img)
     return complex;
 }
 
-void butterworthFrequencyFilter(Mat &filter, int d, int n, bool highpass, bool band, int from, int to)
-{
-    Mat tmp;
-    if(band && highpass)
-    {
-        tmp = butterworth(to,n,filter.size(),true);
-        Mat reject = butterworth(from,n,filter.size(),false);
-        tmp = tmp+reject;
-    }
-    else if (band && !highpass)
-    {
-        tmp = butterworth(to,n,filter.size(),false);
-        Mat reject = butterworth(from,n,filter.size(),false);
-        tmp = tmp-reject;
-    }
-    else
-    {
-        tmp = butterworth(d,n,filter.size(),highpass);
-    }
-    //give out filter
-    filter = tmp;
-}
-
-Mat applyFilterComplexImage(Mat &img, double radius, int order, int from, int to, Mat &filterOut)
+Mat applyFilterComplexImage(Mat &img, Mat &filterOut)
 {
     //vars
     Mat imgOut;
     Mat planes[2];
-    Mat filter;
-
-    //clone img
-    filter = img.clone();
-    //make filter
-    butterworthFrequencyFilter(filter, radius, order,true,true,from,to);
-
-    //set filterout - So filter can be shown
-    filterOut = filter;
 
     //shift and mul spectrums
     dftshift(img);
-    mulSpectrums(img, filter, img, 0);
+    mulSpectrums(img, filterOut, img, 0);
     //shift back
     dftshift(img);
+
     //inverse dft
     idft(img, img);
+
     //split and normalize image
     split(img, planes);
     normalize(planes[0], imgOut, 0, 1, CV_MINMAX);
