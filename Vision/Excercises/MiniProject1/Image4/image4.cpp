@@ -18,7 +18,7 @@ void dftshift(cv::Mat& mag);
 Mat butterworth(float d0, int n, Size size, bool highpass, bool band = false, float bandWidth = 0);
 Mat getMagnitudeSpectrum(Mat& img, bool shift = true);
 Mat applyDft(Mat img);
-Mat applyFilterComplexImage(Mat &img, Mat &filterOut);
+Mat applyFilterComplexImage(Mat &img, Mat &filter);
 Mat getHistogram(Mat &img);
 
 int main() {
@@ -38,11 +38,8 @@ int main() {
     //crop image to largest uniform surface
     Mat cropped (img, Rect(Point(830,1460), Point(1468, 1747)));
 
-    //histogram of cropped
-    Mat hist;
-
     //get histogram
-    hist = getHistogram(cropped);
+    Mat hist = getHistogram(cropped);
     showImage("Histogram", hist);
 
     //Frequency analyse
@@ -75,8 +72,6 @@ int main() {
     Mat filteredMag = getMagnitudeSpectrum(filteredComplex);
     showImage("filteredImg", imgOut);
     showImage("filteredMag", filteredMag);
-
-    //endregion
 
     waitKey();
     return 0;
@@ -169,7 +164,8 @@ Mat getMagnitudeSpectrum(Mat& img, bool shift)
 
 Mat applyDft(Mat img)
 {
-    Mat padded;                            //expand input image to optimal size
+    //expand input image to optimal size
+    Mat padded;
     int m = getOptimalDFTSize( img.rows );
     int n = getOptimalDFTSize( img.cols ); // on the border add zero values
     copyMakeBorder(img, padded, 0, m - img.rows, 0, n - img.cols, BORDER_CONSTANT, Scalar::all(0));
@@ -187,7 +183,7 @@ Mat applyDft(Mat img)
     return complex;
 }
 
-Mat applyFilterComplexImage(Mat &img, Mat &filterOut)
+Mat applyFilterComplexImage(Mat &img, Mat &filter)
 {
     //vars
     Mat imgOut;
@@ -195,7 +191,7 @@ Mat applyFilterComplexImage(Mat &img, Mat &filterOut)
 
     //shift and mul spectrums
     dftshift(img);
-    mulSpectrums(img, filterOut, img, 0);
+    mulSpectrums(img, filter, img, 0);
     //shift back
     dftshift(img);
 
