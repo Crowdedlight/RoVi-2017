@@ -7,10 +7,15 @@
 using namespace cv;
 using namespace std;
 
-void showImage(string name, Mat img)
+void showImage(string name, Mat img, bool convert = false)
 {
     namedWindow(name, WINDOW_NORMAL);
     imshow(name, img);
+
+    //convert so image can be saved
+    if(convert)
+        img.convertTo(img,CV_8UC3,255.0);
+
     imwrite("../../outimg/image3/" + name + ".png", img);
 }
 
@@ -19,6 +24,7 @@ Mat getMagnitudeSpectrum(Mat& img, bool shift = true);
 Mat applyDft(Mat img);
 Mat getHistogram(Mat &img);
 void applyContraharmonicFilter(Mat &img, Mat &imgFiltered, int windowSize, double Q);
+void applyLocalNoiseAdaptiveFilter(Mat &img, Mat &imgFiltered, int windowSize, double globalVar);
 Mat getWindowFiltering(Mat &img, int x_center, int y_center, int windowSize);
 
 int main() {
@@ -26,7 +32,7 @@ int main() {
     //region Image3
 
     // Load image3 as grayscale
-    string filename = "../../imgs/Image1.png";
+    string filename = "../../imgs/Image3.png";
     Mat img = cv::imread(filename, cv::IMREAD_GRAYSCALE);
 
     if (img.empty()) {
@@ -48,20 +54,34 @@ int main() {
     showImage("Input_image", img);
     showImage("Cropped_image", cropped);
     showImage("Historigram_cropped", hist);
-    showImage("Magnitude_cropped", mag);
+    showImage("Magnitude_cropped", mag, true);
 
-    //looks like some salt noise using Contraharmonic filter to get rid of it
+    //looks like some uniform noise. Using Adaptive local noise reduction and then contraharmonicfilter
     Mat filtered(img.size(), img.type());
 
-    applyContraharmonicFilter(img, filtered, 5, -3.5);
+    //adaptive local noise reduction
+    //need global variance for a area with constant intensity
+    Mat globalMat, globalStd;
+    //the area with constant intensity. (Same area as cropped histogram)
+    Rect r(Point(830,1460), Point(1468, 1747));
+    meanStdDev(img(r), globalMat, globalStd);
+    double globalVariance = pow(globalStd.at<uchar>(0,0),2);
+
+    //apply filter
+    applyLocalNoiseAdaptiveFilter(img, filtered, 5, globalVariance);
+
+    //apply contraHarmonic filter
+    Mat filtered2(img.size(), img.type());
+    applyContraharmonicFilter(filtered, filtered2, 5, -3.5);
 
     //new histogram to see filter effect
-    Mat cropped2 (filtered, Rect(Point(830,1460), Point(1468, 1747)));
+    Mat cropped2 (filtered2, Rect(Point(830,1460), Point(1468, 1747)));
     Mat filteredHist = getHistogram(cropped2);
-    showImage("Filtered histogram", filteredHist);
+    showImage("Filtered_histogram_cropped", filteredHist);
 
     //show filtered image
-    showImage("Filtered image", filtered);
+    showImage("Filtered_image", filtered);
+    showImage("Filtered_image2", filtered2);
 
     //endregion
 
@@ -215,6 +235,35 @@ void applyContraharmonicFilter(Mat &img, Mat &imgFiltered, int windowSize, doubl
             }
             //apply new value to current pixel
             imgFiltered.at<uchar>(y,x) = upperSum/lowerSum;
+        }
+    }
+}
+
+void applyLocalNoiseAdaptiveFilter(Mat &img, Mat &imgFiltered, int windowSize, double globalVar)
+{
+    for (int x = 0; x < img.size().width; x++)
+    {
+        for (int y = 0; y < img.size().height; y++)
+        {
+
+            //get window
+            Mat window = getWindowFiltering(img, x, y, windowSize);
+
+            //Local
+            Mat localMat;
+            Mat localStd;
+
+            meanStdDev(window, localMat, localStd);
+            double localVariance = pow(localStd.at<uchar>(0,0),2);
+            double localMean = localMat.at<double>(0,0);
+            double factor = globalVar/localVariance;
+
+            //clamp if above 1
+            if (factor > 1)
+                factor = 1;
+
+            //apply new value to current pixel
+            imgFiltered.at<uchar>(y,x) = (double) img.at<uchar>(y,x) - factor * ((double)img.at<uchar>(y,x) - localMean);
         }
     }
 }
