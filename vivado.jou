@@ -1,0 +1,28 @@
+#-----------------------------------------------------------
+# Vivado v2017.2 (64-bit)
+# SW Build 1909853 on Thu Jun 15 18:39:10 MDT 2017
+# IP Build 1909766 on Thu Jun 15 19:58:00 MDT 2017
+# Start of session at: Fri Oct 13 20:59:02 2017
+# Process ID: 5157
+# Current directory: /home/frederik/Documents/RoVi
+# Command line: vivado
+# Log file: /home/frederik/Documents/RoVi/vivado.log
+# Journal file: /home/frederik/Documents/RoVi/vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project /home/frederik/Documents/Rob_Electronics/lab3/lab3.xpr
+update_compile_order -fileset sources_1
+file mkdir /home/frederik/Documents/Rob_Electronics/lab3/lab3.srcs/sources_1/new
+close [ open /home/frederik/Documents/Rob_Electronics/lab3/lab3.srcs/sources_1/new/duty_module.vhd w ]
+add_files /home/frederik/Documents/Rob_Electronics/lab3/lab3.srcs/sources_1/new/duty_module.vhd
+close [ open /home/frederik/Documents/Rob_Electronics/lab3/lab3.srcs/sources_1/new/duty_machine.vhd w ]
+add_files /home/frederik/Documents/Rob_Electronics/lab3/lab3.srcs/sources_1/new/duty_machine.vhd
+update_compile_order -fileset sources_1
+update_compile_order -fileset sources_1
+update_compile_order -fileset sources_1
+update_compile_order -fileset sources_1
+update_compile_order -fileset sources_1
+update_compile_order -fileset sources_1
+close [ open /home/frederik/Documents/Rob_Electronics/lab3/lab3.srcs/sources_1/new/pwm_8bit.vhd w ]
+add_files /home/frederik/Documents/Rob_Electronics/lab3/lab3.srcs/sources_1/new/pwm_8bit.vhd
+update_compile_order -fileset sources_1

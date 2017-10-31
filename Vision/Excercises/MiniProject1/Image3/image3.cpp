@@ -70,9 +70,14 @@ int main() {
     //apply filter
     applyLocalNoiseAdaptiveFilter(img, filtered, 5, globalVariance);
 
+    //show filtered1 histogram
+    Mat cropped1 (filtered, Rect(Point(830,1460), Point(1468, 1747)));
+    Mat histFiltered1 = getHistogram(cropped1);
+    showImage("Histogram filtered1", histFiltered1);
+
     //apply contraHarmonic filter
     Mat filtered2(img.size(), img.type());
-    applyContraharmonicFilter(filtered, filtered2, 5, -3.5);
+    applyContraharmonicFilter(filtered, filtered2, 5, 1.6);
 
     //new histogram to see filter effect
     Mat cropped2 (filtered2, Rect(Point(830,1460), Point(1468, 1747)));
