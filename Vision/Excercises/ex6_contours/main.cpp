@@ -50,10 +50,8 @@ void showContours ()
         Scalar color = Scalar( 255,0,0 );
         drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
 
-        //moments for contour
-//        Moments mo = moments(contours[i]);
-//        double cx = mo.m10/mo.m00;
-//        double cy = mo.m01/mo.m00;
+        //reset coinsum
+        countSum = 0;
 
         //add center text
         Point2f textCenter;
@@ -132,6 +130,10 @@ int main(int argc, char* argv[])
         std::cout << "Input image not found at '" << filename << "'\n";
         return 1;
     }
+
+    //show input
+    namedWindow("input", CV_GUI_NORMAL);
+    imshow("input", img);
 
     //blur it
     Mat filter;
