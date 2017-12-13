@@ -116,30 +116,54 @@ class RobworkTools {
         //v
         double v = (f*y)/z;
 
-        rw::math::Vector2D result = {u,v};
+        rw::math::Vector2D<> result = {u,v};
         return result;
     }
 
     static rw::math::Jacobian getImageJacobian(double x, double y, double z, double u, double v, double f)
     {
         //calculate Jacobian
-        rw::math::Jacobian Jimage(2);
+        rw::math::Jacobian Jimage(2,6);
 
         Jimage.elem(0,0) = -(f/z);
-        Jimage.elem(1,0) = 0;
-        Jimage.elem(2,0) = u/z;
-        Jimage.elem(3,0) = (u*v)/f;
-        Jimage.elem(4,0) = -(pow(f,2)+pow(u,2))/f;
-        Jimage.elem(5,0) = v;
-
         Jimage.elem(0,1) = 0;
-        Jimage.elem(1,1) = -(f/2);
-        Jimage.elem(2,1) = v/z;
-        Jimage.elem(3,1) = (pow(f,2)+pow(v,2))/f;
-        Jimage.elem(4,1) = -(u*v)/f;
-        Jimage.elem(5,1) = -u;
+        Jimage.elem(0,2) = u/z;
+        Jimage.elem(0,3) = (u*v)/f;
+        Jimage.elem(0,4) = -(pow(f,2)+pow(u,2))/f;
+        Jimage.elem(0,5) = v;
+
+        Jimage.elem(1,0) = 0;
+        Jimage.elem(1,1) = -(f/z);
+        Jimage.elem(1,2) = v/z;
+        Jimage.elem(1,3) = (pow(f,2)+pow(v,2))/f;
+        Jimage.elem(1,4) = -(u*v)/f;
+        Jimage.elem(1,5) = -u;
 
         return Jimage;
+    }
+
+    static rw::math::Jacobian calcZImage(rw::math::Jacobian jImage, rw::models::Device::Ptr device, rw::math::Q q,
+                                         rw::kinematics::State state)
+    {
+        //set robot right position
+        device->setQ(q, state);
+
+        //baseTool
+        rw::math::Rotation3D<> baseRTool = device->baseTend(state).R().inverse();
+
+        //make jacobian
+        rw::math::Jacobian S(6,6);
+
+        //set eigen matrix to zero
+        S.e().setZero();
+
+        //set eigen matrix block equal to baseTool's
+        S.e().block<3,3>(0,0) = S.e().block<3,3>(3,3) = baseRTool.e();
+
+        //get jacobian
+        rw::math::Jacobian Jbase = device->baseJend(state);
+
+        return jImage*S*Jbase;
     }
 
 };

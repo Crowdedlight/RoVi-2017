@@ -2,6 +2,7 @@
 #include <opencv2/highgui.hpp>
 
 #include <functional>
+#include <opencv2/calib3d.hpp>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -152,6 +153,9 @@ cv::Mat findHSVSegmentation(cv::Mat &image)
 
 void findBlobDetecting(cv::Mat &image)
 {
+    int minThres = 0, maxThres = 255, minArea = 0, maxArea = 50000, blobColor = 0, minCircular = 0, minInertia = 0;
+    const string windowName = "Blob Detector";
+
     cv::Mat in_grey;
     cv::cvtColor(image, in_grey, CV_BGR2GRAY);
 
@@ -159,24 +163,90 @@ void findBlobDetecting(cv::Mat &image)
     cv::SimpleBlobDetector::Params params;
 
     function<void()> f = [&]() {
+        // Change thresholds
+        params.minThreshold = minThres;
+        params.maxThreshold = maxThres;
 
+        // Filter by Area.
+        params.filterByArea = true;
+        params.minArea = minArea;
+        params.maxArea = maxArea;
+
+        //filter by color
+        params.filterByColor = true;
+        params.blobColor = blobColor;
+
+        // Filter by Circularity
+        params.filterByCircularity = true;
+        params.minCircularity = float(minCircular/100);
+
+        // Filter by Convexity
+        params.filterByConvexity = false;
+        params.minConvexity = 0.87;
+
+        // Filter by Inertia
+        params.filterByInertia = true;
+        params.minInertiaRatio = float(minInertia/100);
+
+        cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
+
+        // Detect blobs.
+        std::vector<cv::KeyPoint> keypoints;
+        detector->detect(in_grey, keypoints);
+
+        // Draw detected blobs as red circles.
+        // DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures the size of the circle corresponds to the size of blob
+        cv::Mat img_with_keypoints;
+        drawKeypoints(in_grey, keypoints, img_with_keypoints, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+
+        // Show blobs
+        showImage(windowName, img_with_keypoints );
+    };
+    cv::namedWindow(windowName, CV_GUI_NORMAL);
+
+    cv::createTrackbar("Min Threshold", windowName, &minThres, 255, on_trackbar, &f);
+    cv::createTrackbar("Max Threshold", windowName, &maxThres, 255, on_trackbar, &f);
+    cv::createTrackbar("Min Area", windowName, &minArea, 50000, on_trackbar, &f);
+    cv::createTrackbar("Max Area", windowName, &maxArea, 50000, on_trackbar, &f);
+    cv::createTrackbar("Blob Color", windowName, &blobColor, 255, on_trackbar, &f);
+    cv::createTrackbar("Min Circularity", windowName, &minCircular, 100, on_trackbar, &f);
+    cv::createTrackbar("Min Inertia", windowName, &minInertia, 100, on_trackbar, &f);
+    f();
+
+    while (cv::waitKey() != 27)
+        ;
+
+    cv::destroyWindow(windowName);
+}
+
+void applyBlobDetecting(cv::Mat &image, vector<cv::KeyPoint>& keypoints, cv::Mat &imageKeypoints,
+                        int minThres = 0, int maxThres = 255,
+                        int minArea = 0, int maxArea = 100000,
+                        int blobColor = 0, float minCircular = 0, float minInertia = 0)
+{
+    cv::Mat in_grey = image;
+    //cv::cvtColor(image, in_grey, CV_BGR2GRAY);
+
+    // Setup SimpleBlobDetector parameters.
+    cv::SimpleBlobDetector::Params params;
 
     // Change thresholds
-    params.minThreshold = 0;
-    params.maxThreshold = 255;
+    params.minThreshold = minThres;
+    params.maxThreshold = maxThres;
 
     // Filter by Area.
     params.filterByArea = true;
-    params.minArea = 600;
-    params.maxArea = 100000;
+    params.minArea = minArea;
+    params.maxArea = maxArea;
 
     //filter by color
-    params.filterByColor = false;
-    params.blobColor = 20;
+    params.filterByColor = true;
+    params.blobColor = blobColor;
 
     // Filter by Circularity
     params.filterByCircularity = true;
-    params.minCircularity = 0.9;
+    params.minCircularity = minCircular;
+    params.maxCircularity = 1;
 
     // Filter by Convexity
     params.filterByConvexity = false;
@@ -184,29 +254,23 @@ void findBlobDetecting(cv::Mat &image)
 
     // Filter by Inertia
     params.filterByInertia = true;
-    params.minInertiaRatio = 0.9;
+    params.minInertiaRatio = minInertia;
 
     cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
 
     // Detect blobs.
-    std::vector<cv::KeyPoint> keypoints;
     detector->detect(in_grey, keypoints);
 
     // Draw detected blobs as red circles.
     // DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures the size of the circle corresponds to the size of blob
-    cv::Mat img_with_keypoints;
-    drawKeypoints(in_grey, keypoints, img_with_keypoints, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
-
-    // Show blobs
-    showImage("keypoints", img_with_keypoints );
-    };
+    drawKeypoints(in_grey, keypoints, imageKeypoints, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 }
 
 int main(int argc, char* argv[])
 {
     cv::CommandLineParser parser(argc, argv,
                                  "{help   |             | print this message}"
-                                 "{@image | ../marker_color/marker_color_01.png  | image path}"
+                                 "{@image | ../marker_color_hard/marker_color_hard_%02d.png  | image path}"
     );
 
     if (parser.has("help")) {
@@ -214,31 +278,58 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    // Load image
-    std::string filename = parser.get<std::string>("@image");
-    cv::Mat src = cv::imread(filename, cv::IMREAD_COLOR);
+    cv::VideoCapture sequence(parser.get<std::string>("@image"));
 
-    if (src.empty()) {
-        std::cout << "Input image not found at '" << filename << "'\n";
+    //todo debug
+//    cv::Mat img = cv::imread("../marker_color_hard/marker_color_hard_01.png", cv::IMREAD_COLOR);
+//    findBlobDetecting(img);
+
+
+    //Is sequence open?
+    if (!sequence.isOpened())
+    {
+        cerr << "Failed to open Image Sequence!\n" << endl;
         return 1;
     }
 
-    //color segmentation - Find the best values to track the red and green circle
-    //findHSVSegmentation(src);
+    //loop sequence
+    cv::Mat current_image;
+    int counter = 0;
+    while(true)
+    {
+        sequence >> current_image;
+        //end of sequence?
+        if (current_image.empty()) {
+            std::cout << "End of Sequence." << endl;
+            return 0;
+        }
 
-    //cv::Mat segmented, mask;
-    //get resulting mask
-    //applyHSVSegmentation(src, segmented, mask, cv::Scalar(109,255,255), cv::Scalar(110,255,255), cv::MORPH_CLOSE, cv::Size(10,10));
+        //do threatment
+        //color segmentation - Find the best values to track the red and green circle
+        //findHSVSegmentation(src);
 
-    //showImage("segmented", segmented);
-    showImage("input image", src);
+        cv::Mat segmented, mask;
+        //get resulting mask
+        applyHSVSegmentation(current_image, segmented, mask, cv::Scalar(109,255,255), cv::Scalar(110,255,255), cv::MORPH_CLOSE, cv::Size(10,10));
 
+        vector<cv::KeyPoint> keypoints;
+        cv::Mat imageKeypoints; //9630 - 12658
+        applyBlobDetecting(mask, keypoints, imageKeypoints, 0, 81, 2500, 15000, 0, 0.8  , 0);
 
+        showImage("keypoints", imageKeypoints);
 
+        //get points of the three circles
+        cout << ++counter << ". " << endl;
+        for(const auto& point : keypoints)
+        {
+            cout << "point:" << point.pt << ", size:" << point.size << endl;
+            cv::drawMarker(current_image, point.pt, cv::Scalar(0,255,0));
+        }
 
-    //end wait
-    while (cv::waitKey() != 27)
-        ;
+        showImage("Tracking Points", current_image);
 
-    return 0;
+        //end wait 27 == esc, 32 == spacebar
+        while (cv::waitKey() != 32)
+            ;
+    }
 }
