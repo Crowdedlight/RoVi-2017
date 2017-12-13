@@ -308,6 +308,9 @@ int main(int argc, char* argv[])
         //color segmentation - Find the best values to track the red and green circle
         //findHSVSegmentation(src);
 
+        //time how long processing takes
+        long beforeCount = cv::getTickCount();
+
         cv::Mat segmented, mask;
         //get resulting mask
         applyHSVSegmentation(current_image, segmented, mask, cv::Scalar(109,255,255), cv::Scalar(110,255,255), cv::MORPH_CLOSE, cv::Size(10,10));
@@ -316,10 +319,14 @@ int main(int argc, char* argv[])
         cv::Mat imageKeypoints; //9630 - 12658
         applyBlobDetecting(mask, keypoints, imageKeypoints, 0, 81, 2500, 15000, 0, 0.8  , 0);
 
+        //after processing, before showing
+        long afterCount = cv::getTickCount();
+        double time = (afterCount - beforeCount)/ cv::getTickFrequency();
+
         showImage("keypoints", imageKeypoints);
 
         //get points of the three circles
-        cout << ++counter << ". " << endl;
+        cout << ++counter << ". Processing Time: " << time <<  " sec" << endl;
         for(const auto& point : keypoints)
         {
             cout << "point:" << point.pt << ", size:" << point.size << endl;
