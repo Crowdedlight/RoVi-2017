@@ -1,3 +1,0 @@
-/home/frederik/Documents/RoVi/Vision/Excercises/FinalProject_Maker1/cmake-build-release/CMakeFiles/rebuild_cache.dir
-/home/frederik/Documents/RoVi/Vision/Excercises/FinalProject_Maker1/cmake-build-release/CMakeFiles/edit_cache.dir
-/home/frederik/Documents/RoVi/Vision/Excercises/FinalProject_Maker1/cmake-build-release/CMakeFiles/FinalProject_Marker1.dir
