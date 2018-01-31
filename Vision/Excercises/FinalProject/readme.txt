@@ -29,7 +29,24 @@ Works the same way as marker1. Supports two input arguments when running. First 
 
 
 ##Robotics
-------- OLLIVER
+##Robotics
+To compile the robotics part, go to SamplePluginPA10/CMakeList.txt and edit the path to RobWork and RobWork Studio, where it says:
+
+# Use RobWork
+# Use RobWorkStudio
+
+The generic path is commented out, and can be commented in. For some reason it wouldn't work on all machines.
+
+Now go to SamplePluginPA10/src/SamplePlugin.hpp and edit:
+
+line 106: number of points can ether be 1 or 3. Error will occur if not 1 or 3.
+line 107: path to where the project is located localy on the machine.
+
+Delta_t can be changed in SamplePluginPA10/src/SamplePlugin.cpp in line 114
+
+_itterator can be changed in SamplePluginPA10/src/SamplePlugin.cpp in line 116. _itterator can be set to 0, 1 og 2, and determines which motion sequence to load.
+
+
 
 ##Combined Intergration
-------- Same as in robotics, just uses the vision part to track instead of the sequence of motions. 
+Same as in robotics, just uses the vision part to track instead of the sequence of motions. 
